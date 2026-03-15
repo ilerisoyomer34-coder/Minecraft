@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tr" style="background:#000;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Minecraft</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Minecraft" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    #container { position: relative; width: 100%; height: 100vh; }
+
+    #game_iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      display: none;
+      z-index: 1;
+      background: #000;
+    }
+
+    /* ACIBADEM / 5A splash */
+    #splash-cover {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #splash-text {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(28px, 6vw, 72px);
+      color: #fff;
+      text-shadow: 0 0 20px #fff, 0 0 40px #aaa;
+      letter-spacing: 6px;
+      animation: splashPulse 1.2s ease-in-out infinite;
+      user-select: none;
+      transition: opacity 0.8s;
+    }
+
+    #splash-click {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 40px;
+      animation: blink 1s step-end infinite;
+      cursor: pointer;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    @keyframes splashPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.7; transform: scale(1.04); }
+    }
+
+    /* OVERLAY (menü) */
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #overlay::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(90deg, rgba(101,67,33,0.18) 0px 8px, transparent 8px 16px),
+        repeating-linear-gradient(0deg, rgba(80,50,20,0.18) 0px 8px, transparent 8px 16px),
+        linear-gradient(160deg, #1a2a0a 0%, #0d1a05 50%, #111a08 100%);
+      z-index: -1;
+    }
+
+    #overlay::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 5%,  #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 8%,  #fff 0%, transparent 100%);
+      opacity: 0.6; z-index: -1;
+    }
+
+    #mc-logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(24px, 5vw, 56px);
+      color: #ffff55;
+      text-shadow: 4px 4px 0 #3f3f00, -2px -2px 0 #5a5a00;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      animation: titleBob 3s ease-in-out infinite;
+      user-select: none;
+    }
+
+    @keyframes titleBob {
+      0%, 100% { transform: translateY(0px) rotate(-1deg); }
+      50%       { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    #mc-subtitle {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(8px, 1.5vw, 14px);
+      color: #aaffaa;
+      text-shadow: 2px 2px 0 #004400;
+      margin-bottom: 50px;
+    }
+
+    .mc-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(9px, 1.4vw, 13px);
+      color: #fff;
+      padding: 14px 32px;
+      width: clamp(220px, 35vw, 380px);
+      margin: 8px 0;
+      cursor: pointer;
+      border: none; outline: none;
+      text-shadow: 2px 2px 0 #3f3f3f;
+      letter-spacing: 1px;
+      background: linear-gradient(180deg, #8b8b8b 0%, #6e6e6e 45%, #555 50%, #6e6e6e 55%, #8b8b8b 100%);
+      border-top: 3px solid #c6c6c6; border-left: 3px solid #c6c6c6;
+      border-right: 3px solid #373737; border-bottom: 3px solid #373737;
+    }
+
+    .mc-btn:hover {
+      background: linear-gradient(180deg, #a0a0e0 0%, #7070c0 45%, #5050a0 50%, #7070c0 55%, #a0a0e0 100%);
+      border-top-color: #d0d0ff; border-left-color: #d0d0ff;
+    }
+
+    .mc-btn:active {
+      border-top-color: #373737; border-left-color: #373737;
+      border-right-color: #c6c6c6; border-bottom-color: #c6c6c6;
+      transform: translate(1px,1px);
+    }
+
+    .mc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #loading-wrap { display: none; flex-direction: column; align-items: center; margin-top: 20px; }
+
+    #loading-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px; color: #fff; text-shadow: 1px 1px 0 #000; margin-bottom: 10px;
+    }
+
+    #loading-bar-outer {
+      width: clamp(220px, 35vw, 380px); height: 22px;
+      background: #191919; border: 3px solid #555; overflow: hidden;
+    }
+
+    #loading-bar-inner {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #55ff55, #00aa00);
+      transition: width 0.3s;
+    }
+
+    #grass-bar {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 40px;
+      background: linear-gradient(180deg, #5a9e35 0%, #4a8a28 40%, #7a5230 40%, #6b4526 100%);
+      border-top: 3px solid #6fc73e; z-index: 5;
+    }
+
+    /* Minecraft Hotbar */
+    #mc-hotbar {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      display: none;
+      flex-direction: row;
+      align-items: center;
+      gap: 0px;
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .inv-slot {
+      width: 40px; height: 40px;
+      background: rgba(20,20,20,0.75);
+      border: 2px solid #8b8b8b;
+      border-bottom-color: #373737;
+      border-right-color: #373737;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; image-rendering: pixelated;
+    }
+
+    .inv-slot:hover::after {
+      content: attr(data-tip);
+      position: absolute; bottom: 110%; left: 50%;
+      transform: translateX(-50%);
+      background: #1a0030cc; color: #fff;
+      font-family: 'Press Start 2P', monospace; font-size: 6px;
+      padding: 3px 7px; white-space: nowrap;
+      border: 1px solid #555;
+      pointer-events: none; z-index: 999;
+    }
+
+    .inv-slot img {
+      width: 30px; height: 30px;
+      image-rendering: pixelated;
+    }
+
+    #fullscreen-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 100;
+      font-family: 'Press Start 2P', monospace; font-size: 10px;
+      color: #fff; padding: 8px 14px; cursor: pointer;
+      background: linear-gradient(180deg, #8b8b8b 0%, #6e6e6e 50%, #8b8b8b 100%);
+      border-top: 2px solid #c6c6c6; border-left: 2px solid #c6c6c6;
+      border-right: 2px solid #373737; border-bottom: 2px solid #373737;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+
+  <iframe id="game_iframe" allowfullscreen allow="pointer-lock"></iframe>
+
+  <div id="splash-cover">
+    <div id="splash-text">ACIBADEM</div>
+  </div>
+
+
+  <div id="overlay">
+    <div id="mc-logo">MINECRAFT</div>
+    <div id="mc-subtitle">Java Edition</div>
+
+    <button class="mc-btn" onclick="startGame(this)">&#9654; OYNA</button>
+    <button class="mc-btn" onclick="goFullscreen()">&#x26F6; TAM EKRAN</button>
+
+    <div id="loading-wrap">
+      <div id="loading-label">Yükleniyor...</div>
+      <div id="loading-bar-outer"><div id="loading-bar-inner"></div></div>
+    </div>
+
+    <div id="grass-bar"></div>
+  </div>
+
+  <button id="fullscreen-btn" onclick="goPageFullscreen()">&#x26F6; TAM EKRAN</button>
+</div>
+
+<script>
+  function setProgress(pct) {
+    document.getElementById('loading-bar-inner').style.width = pct + '%';
+  }
+
+  function startGame(btn) {
+    window.location.href = '/game.html';
+  }
+
+  function dismissSplash() {
+    const cover = document.getElementById('splash-cover');
+    cover.style.transition = 'opacity 0.8s';
+    cover.style.opacity = '0';
+    setTimeout(() => { cover.style.display = 'none'; cover.style.opacity = '1'; }, 800);
+  }
+
+  function dismissSplash() {
+    const cover = document.getElementById('splash-cover');
+    cover.style.transition = 'opacity 0.8s';
+    cover.style.opacity = '0';
+    setTimeout(() => { cover.style.display = 'none'; cover.style.opacity = '1'; }, 800);
+  }
+
+  function goFullscreen() {
+    window.open('/game.html', '_blank');
+  }
+
+  function goPageFullscreen() {
+    const el = document.getElementById('container');
+    (el.requestFullscreen || el.mozRequestFullScreen || el.webkitRequestFullscreen || el.msRequestFullscreen).call(el);
+  }
+
+  // Kasma azaltmak için: oyun başlayınca menü animasyonlarını durdur
+  function stopMenuAnimations() {
+    document.querySelectorAll('*').forEach(el => {
+      el.style.animationPlayState = 'paused';
+    });
+  }
+
+  document.getElementById('game_iframe').addEventListener('load', function() {
+    stopMenuAnimations();
+  });
+
+  // Service Worker kaydet
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>

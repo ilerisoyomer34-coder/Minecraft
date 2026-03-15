@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html style="background:#000;">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="color-scheme" content="dark"/>
+<title>Minecraft</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;}
+#game_frame{width:100%;height:100%;}
+
+#splash{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#000;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.8s;
+  pointer-events:none;
+}
+#splash-text{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(32px,7vw,96px);
+  color:#fff;
+  text-shadow:
+    4px  4px 0 #555,
+    8px  8px 0 #333,
+    -2px -2px 0 #888;
+  letter-spacing:8px;
+  image-rendering:pixelated;
+  transition:opacity 0.6s;
+}
+
+/* Crosshair - sadece pointer lock aktifken göster */
+#crosshair{
+  display:none;
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:20px;height:20px;
+  pointer-events:none;z-index:8000;
+}
+#crosshair::before,#crosshair::after{
+  content:'';position:absolute;background:#fff;opacity:0.85;
+}
+#crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%);}
+#crosshair::after{width:100%;height:2px;top:50%;transform:translateY(-50%);}
+</style>
+</head>
+<body>
+<div id="game_frame"></div>
+<div class="_eaglercraftX_wrapper_element"></div>
+<div id="_eaglercraftX_crashReason" style="display:none;"></div>
+<div id="_eaglercraftX_crashUserAgent" style="display:none;"></div>
+
+<div id="splash"><div id="splash-text">ACIBADEM</div></div>
+<div id="crosshair"></div>
+
+<script>
+// Splash: ACIBADEM → 5/A → kapat
+var st = document.getElementById('splash-text');
+var sp = document.getElementById('splash');
+setTimeout(function(){
+  st.style.opacity='0';
+  setTimeout(function(){ st.textContent='5/A'; st.style.opacity='1'; },600);
+},4000);
+setTimeout(function(){
+  sp.style.opacity='0';
+  setTimeout(function(){ sp.style.display='none'; },800);
+},8000);
+
+// Canvas yazı override
+var _ft = CanvasRenderingContext2D.prototype.fillText;
+CanvasRenderingContext2D.prototype.fillText = function(t,x,y,m){
+  if(typeof t==='string') t=t.replace(/eaglercraft/gi,'ACIBADEM').replace(/eagtekx?/gi,'ACIBADEM').replace(/mojang/gi,'5/A');
+  return m!==undefined?_ft.call(this,t,x,y,m):_ft.call(this,t,x,y);
+};
+</script>
+
+<script src="/classes_custom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mece188/feh@main/fix-webm-duration.js"></script>
+<script>
+// Crosshair — pointer lock aktifken göster, EaglerCraft kendi lock'unu yönetir
+(function(){
+  var crosshair = document.getElementById('crosshair');
+  document.addEventListener('pointerlockchange', function(){
+    crosshair.style.display = document.pointerLockElement ? 'block' : 'none';
+  });
+})();
+
+// Shift → sağ tık (blok koyma)
+(function(){
+  function getCanvas(){
+    return document.querySelector('#game_frame canvas');
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight'){
+      var c = getCanvas();
+      if(!c || !document.pointerLockElement) return;
+      c.dispatchEvent(new MouseEvent('mousedown', {bubbles:true, cancelable:true, button:2, buttons:2}));
+    }
+  });
+  document.addEventListener('keyup', function(e){
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight'){
+      var c = getCanvas();
+      if(!c) return;
+      c.dispatchEvent(new MouseEvent('mouseup', {bubbles:true, cancelable:true, button:2, buttons:0}));
+    }
+  });
+})();
+
+window.addEventListener('load', function() {
+  window.ACIBADEMXOpts = window.eaglercraftXOpts = {
+    container: "game_frame",
+    assetsURI: "https://cdn.jsdelivr.net/gh/mece188/feh@main/assets.epk",
+    localesURI: "lang/",
+    servers: [
+      { addr: "wss://mc.arch.lol/", name: "ArchMC" },
+      { addr: "wss://1b2t.eagler.host", name: "1 Builder 2 Tools" }
+    ]
+  };
+  try { main(); } catch(e){ console.error(e); }
+});
+</script>
+</body>
+</html>
