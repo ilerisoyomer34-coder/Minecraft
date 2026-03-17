@@ -1,12 +1,11 @@
-const CACHE = 'mc-v1';
+const CACHE = 'mc-v2';
 const CACHE_FILES = [
-  '/',
-  '/index.html',
-  '/game.html',
-  '/classes_custom.min.js',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-180.png'
+  '/Minecraft/',
+  '/Minecraft/index.html',
+  '/Minecraft/game.html',
+  '/Minecraft/icons/icon-192.png',
+  '/Minecraft/icons/icon-512.png',
+  '/Minecraft/icons/icon-180.png'
 ];
 
 self.addEventListener('install', function(e) {
@@ -21,7 +20,7 @@ self.addEventListener('install', function(e) {
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
-      return Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+      return Promise.all(keys.filter(k => k \!== CACHE).map(k => caches.delete(k)));
     })
   );
   self.clients.claim();
